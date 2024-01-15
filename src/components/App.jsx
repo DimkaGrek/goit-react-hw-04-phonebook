@@ -1,44 +1,27 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import s from './App.module.css';
 import { nanoid } from 'nanoid';
 import ContactForm from './ContactForm/ContactForm';
 import ContactList from './ContactList/ContactList';
 import Filter from './Filter/Filter';
 import Notification from './Notification/Notification';
-import { saveToLS, loadFromLS } from './storage';
+import { useLocalStorage } from 'hooks/useLocalStorage';
 
-export default class App extends Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', phone: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', phone: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', phone: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', phone: '227-91-26' },
-    ],
-    filter: '',
-  };
+const App = () => {
+  const defContacts = [
+    { id: 'id-1', name: 'Rosie Simpson', phone: '459-12-56' },
+    { id: 'id-2', name: 'Hermione Kline', phone: '443-89-12' },
+    { id: 'id-3', name: 'Eden Clements', phone: '645-17-79' },
+    { id: 'id-4', name: 'Annie Copeland', phone: '227-91-26' },
+  ];
 
-  componentDidMount() {
-    const contacts = loadFromLS('contacts');
-    if (contacts) {
-      this.setState({ contacts });
-    }
-  }
+  const [contacts, setContacts] = useLocalStorage('contacts', defContacts);
 
-  componentDidUpdate(_, prevState) {
-    const { contacts } = this.state;
-    if (prevState.contacts !== contacts) {
-      saveToLS('contacts', contacts);
-    }
-  }
+  const [filter, setFilter] = useState('');
 
-  handlerFormSubmit = ({ name, phone }) => {
+  const handlerFormSubmit = ({ name, phone }) => {
     const searchName = name.toLowerCase();
-    if (
-      this.state.contacts.find(
-        contact => contact.name.toLowerCase() === searchName
-      )
-    ) {
+    if (contacts.find(contact => contact.name.toLowerCase() === searchName)) {
       alert(`${name} is already in contacts.`);
       return;
     }
@@ -47,49 +30,40 @@ export default class App extends Component {
       name,
       phone,
     };
-    this.setState(prev => ({
-      contacts: [...prev.contacts, contact],
-    }));
+    setContacts(prev => [...prev, contact]);
   };
 
-  deleteContact = id => {
-    this.setState(prev => ({
-      contacts: prev.contacts.filter(contact => contact.id !== id),
-    }));
+  const deleteContact = id => {
+    setContacts(prev => prev.filter(contact => contact.id !== id));
   };
 
-  handleFilter = value => {
-    this.setState({
-      filter: value,
-    });
+  const handleFilter = value => {
+    setFilter(value);
   };
 
-  foundContacts = () => {
-    const filter = this.state.filter.toLowerCase();
-    return this.state.contacts.filter(contact =>
-      contact.name.toLowerCase().includes(filter)
+  const foundContacts = () => {
+    const filterLowCase = filter.toLowerCase();
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(filterLowCase)
     );
   };
 
-  render() {
-    return (
-      <div className={s.container}>
-        <h1>Phonebook</h1>
-        <ContactForm onSubmit={this.handlerFormSubmit} />
+  return (
+    <div className={s.container}>
+      <h1>Phonebook</h1>
+      <ContactForm onSubmit={handlerFormSubmit} />
 
-        {this.state.contacts.length > 0 ? (
-          <>
-            <Filter value={this.state.filter} onChange={this.handleFilter} />
+      {contacts.length > 0 ? (
+        <>
+          <Filter value={filter} onChange={handleFilter} />
 
-            <ContactList
-              contacts={this.foundContacts()}
-              onDelete={this.deleteContact}
-            />
-          </>
-        ) : (
-          <Notification message="No contacts" />
-        )}
-      </div>
-    );
-  }
-}
+          <ContactList contacts={foundContacts()} onDelete={deleteContact} />
+        </>
+      ) : (
+        <Notification message="No contacts" />
+      )}
+    </div>
+  );
+};
+
+export default App;

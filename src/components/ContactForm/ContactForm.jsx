@@ -1,57 +1,54 @@
-import React, { Component } from 'react';
+import { useState } from 'react';
 import s from './ContactForm.module.css';
 
-class ContactForm extends Component {
-  state = {
-    name: '',
-    phone: '',
-  };
-  handleChange = e => {
+const ContactForm = ({ onSubmit }) => {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+
+  const handleChange = e => {
     const { name, value } = e.currentTarget;
-    this.setState({
-      [name]: value,
-    });
+    if (name === 'name') {
+      setName(value);
+    } else if (name === 'phone') {
+      setPhone(value);
+    }
   };
 
-  handleSubmit = e => {
+  const handleSubmit = e => {
     e.preventDefault();
 
-    this.props.onSubmit(this.state);
-    this.reset();
+    onSubmit({ name, phone });
+    reset();
   };
 
-  reset = () => {
-    this.setState({
-      name: '',
-      phone: '',
-    });
+  const reset = () => {
+    setName('');
+    setPhone('');
   };
 
-  render() {
-    return (
-      <form onSubmit={this.handleSubmit} className={s.form}>
-        <input
-          className={s.input}
-          type="text"
-          name="name"
-          required
-          placeholder="Enter Name"
-          value={this.state.name}
-          onChange={this.handleChange}
-        />
-        <input
-          className={s.input}
-          type="text"
-          name="phone"
-          required
-          placeholder="Enter Phone"
-          value={this.state.phone}
-          onChange={this.handleChange}
-        />
-        <button className={s.btn}>Add contact</button>
-      </form>
-    );
-  }
-}
+  return (
+    <form onSubmit={handleSubmit} className={s.form} autoComplete="on">
+      <input
+        className={s.input}
+        type="text"
+        name="name"
+        required
+        placeholder="Enter Name"
+        value={name}
+        onChange={handleChange}
+      />
+      <input
+        className={s.input}
+        type="text"
+        name="phone"
+        required
+        placeholder="Enter Phone"
+        value={phone}
+        onChange={handleChange}
+      />
+      <button className={s.btn}>Add contact</button>
+    </form>
+  );
+};
 
 export default ContactForm;
